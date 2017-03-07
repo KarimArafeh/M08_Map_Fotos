@@ -9,10 +9,14 @@ import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
@@ -35,6 +39,8 @@ import static android.app.Activity.RESULT_OK;
  */
 public class MainActivityFragment extends Fragment {
 
+    private StorageReference mStorageRef;
+
     private MapView map;
     private IMapController mapController;
     private MyLocationNewOverlay myLocationOverlay;
@@ -44,6 +50,8 @@ public class MainActivityFragment extends Fragment {
 
     private Button foto;
     private Button video;
+
+
 
     public MainActivityFragment() {
     }
@@ -55,6 +63,7 @@ public class MainActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
+        mStorageRef = FirebaseStorage.getInstance().getReference();
 
         map = (MapView) view.findViewById(R.id.mapView);
 
@@ -137,9 +146,9 @@ public class MainActivityFragment extends Fragment {
 
 
     }
+
     //Fem La Foto
     static final int REQUEST_TAKE_PHOTO = 1;
-
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
@@ -150,7 +159,6 @@ public class MainActivityFragment extends Fragment {
                 photoFile = createImageFile();
             } catch (IOException ex) {
                 // Error occurred while creating the File
-
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
@@ -160,11 +168,9 @@ public class MainActivityFragment extends Fragment {
             }
         }
     }
-
-
     //Creem un fitxer on guardar la foto
     String mCurrentPhotoPath;
-
+    private static final int ACTIVITAT_SELECCIONAR_IMATGE = 1;
     private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -172,46 +178,40 @@ public class MainActivityFragment extends Fragment {
         File storageDir = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
+                imageFileName,  // prefix
+                ".jpg",         // suffix
+                storageDir      // directory
         );
-
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = "file:" + image.getAbsolutePath();
         return image;
     }
 
-/*
-
-    private static final int ACTIVITAT_SELECCIONAR_IMATGE = 1;
-
-    Intent i = new Intent(
-            Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-    );
-
-
-    startActivityForResult(i, ACTIVITAT_SELECCIONAR_IMATGE);
-
-
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+    /*
+    //Obtenir la ruta
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-
         switch (requestCode) {
             case ACTIVITAT_SELECCIONAR_IMATGE:
                 if (resultCode == RESULT_OK) {
                     Uri seleccio = intent.getData();
                     String[] columna = {MediaStore.Images.Media.DATA};
-
                     Cursor cursor = getActivity().getContentResolver().query(
                             seleccio, columna, null, null, null);
                     cursor.moveToFirst();
-
                     int indexColumna = cursor.getColumnIndex(columna[0]);
                     String rutaFitxer = cursor.getString(indexColumna);
+                    Log.d("Ruta --------> : " , rutaFitxer);
                     cursor.close();
                 }
         }
     }
-*/
+    */
+
+
+
+
+
+
+
 }
