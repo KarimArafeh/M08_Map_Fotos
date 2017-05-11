@@ -6,8 +6,11 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -63,6 +66,7 @@ public class MainActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
+        permisiones_SD();
         mStorageRef = FirebaseStorage.getInstance().getReference();
 
         map = (MapView) view.findViewById(R.id.mapView);
@@ -87,6 +91,7 @@ public class MainActivityFragment extends Fragment {
         return view;
     }
 
+
     private void initializeMap() {
 
         map.setTileSource(TileSourceFactory.DEFAULT_TILE_SOURCE);
@@ -98,7 +103,17 @@ public class MainActivityFragment extends Fragment {
     }
 
 
+    private void permisiones_SD() {
+/*        int permissionCheck2 = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
+        if (!(permissionCheck2 == PackageManager.PERMISSION_GRANTED)) {
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {} else {
+                // do request the permission
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 8);
+            }
+        }
+*/    }
 
     private void setZoom() {
 
@@ -155,63 +170,49 @@ public class MainActivityFragment extends Fragment {
         if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
             // Create the File where the photo should go
             File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-            }
+            photoFile = createImageFile();
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
                         Uri.fromFile(photoFile));
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+                Log.d("photo ------ > : " , photoFile.toString());
             }
         }
     }
+
     //Creem un fitxer on guardar la foto
     String mCurrentPhotoPath;
     private static final int ACTIVITAT_SELECCIONAR_IMATGE = 1;
-    private File createImageFile() throws IOException {
+    private File createImageFile() {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  // prefix
-                ".jpg",         // suffix
-                storageDir      // directory
-        );
+        File image = null;
+        try {
+            image = File.createTempFile(
+                    imageFileName,  // prefix
+                    ".jpg",         // suffix
+                    storageDir      // directory
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+        Log.d(" photo path  -------------------- : " , mCurrentPhotoPath );
+
+        Intent i = new Intent(
+                Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        );
+        startActivityForResult(i, ACTIVITAT_SELECCIONAR_IMATGE);
+
+
+
         return image;
     }
-
-    /*
-    //Obtenir la ruta
-    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
-        switch (requestCode) {
-            case ACTIVITAT_SELECCIONAR_IMATGE:
-                if (resultCode == RESULT_OK) {
-                    Uri seleccio = intent.getData();
-                    String[] columna = {MediaStore.Images.Media.DATA};
-                    Cursor cursor = getActivity().getContentResolver().query(
-                            seleccio, columna, null, null, null);
-                    cursor.moveToFirst();
-                    int indexColumna = cursor.getColumnIndex(columna[0]);
-                    String rutaFitxer = cursor.getString(indexColumna);
-                    Log.d("Ruta --------> : " , rutaFitxer);
-                    cursor.close();
-                }
-        }
-    }
-    */
-
-
-
-
-
 
 
 }
